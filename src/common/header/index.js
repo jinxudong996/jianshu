@@ -17,7 +17,7 @@ import { connect } from 'react-redux'
 import {actionCreators} from './store'
 
 class Header extends Component {
-
+  
   // constructor(props) {
   //   super(props)
   //   this.handleInputFocus = this.handleInputFocus.bind(this)
@@ -69,22 +69,30 @@ class Header extends Component {
   //     focused: false
   //   })
   // }
+
   getListArea(show) {
-    if(show){
+    const jsList = this.props.list.toJS()
+    const pageList = []
+    const page = this.props.page
+    
+    if (jsList.length) {
+			for (let i = (page - 1) * 10; i < page * 10; i++) {
+				pageList.push(
+					<SearchInfoItem key={jsList[i]}>{jsList[i]}</SearchInfoItem>
+				)
+			}
+		}
+
+    if(show || this.props.mouseIn){
       return (
-        <SearchInfo>
+        <SearchInfo onMouseEnter={this.props.handleMouseEnter} onMouseLeave={this.props.handleMouseLeave}>
           <SearchInfoTitle>热门搜索
-          <SearchInfoSwitch>換一批</SearchInfoSwitch>
+          <SearchInfoSwitch onClick={() => this.props.handleChangePage(this.props.page, this.props.totalPage)}>
+            換一批
+          </SearchInfoSwitch>
           </SearchInfoTitle>
           <SearchInfoList>
-            
-            {
-              this.props.list.map(item => {
-                return (
-                  <SearchInfoItem key={item}>{item}</SearchInfoItem>
-                )
-              })
-            }
+            {pageList}
           </SearchInfoList>
         </SearchInfo>
       )
@@ -100,7 +108,10 @@ const mapStateToProps = (state) => {
   return {
     focused: state.get('header').get('focused'),
     //focused:state.getIn(['header','focused'])
-    list:state.getIn(['header','list'])
+    list:state.getIn(['header','list']),
+    page:state.getIn(['header','page']),
+    mouseIn:state.getIn(['header','mouseIn']),
+    totalPage:state.getIn(['header','totalPage']),
   }
 }
 
@@ -112,6 +123,20 @@ const mapDispathToProps = (dispatch) => {
     },
     handleInputBlur() {
       dispatch(actionCreators.searchBlur())
+    },
+    handleMouseEnter(){
+      dispatch(actionCreators.mouseEnter())
+    },
+    handleMouseLeave(){
+      dispatch(actionCreators.mouseLeave())
+    },
+    handleChangePage(page,totalPage){
+      if(page < totalPage){
+        dispatch(actionCreators.changePage(page+1))
+      }else{
+        dispatch(actionCreators.changePage(1))
+      }
+      
     }
   }
 }
